@@ -80,13 +80,16 @@ class NelderMead:
         m = self.simplex.shape[1]
         values = np.empty((n,m), dtype=np.float)
 
-        for i in np.arange(n):
+        j = 0
+        for i in np.arange(n+1):
             value = self.simplex[i]
 
             if (value == high).all():
                 continue
 
-            values[i] = value
+            values[j] = value
+            
+            j += 1
 
         return 1 / n * np.sum(values, axis=0)
 
