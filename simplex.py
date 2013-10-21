@@ -30,7 +30,8 @@ class NelderMead:
                 func_simplex[i] = self.objective(self.simplex[i])
 
             # Compute x for which the objective assumes the highest value
-            high = np.argmax(func_simplex)
+            high_index = np.argmax(func_simplex)
+            high = self.simplex[high_index]
 
             # Compute the centroid value
             centroid = self.__centroid(high)
@@ -41,7 +42,36 @@ class NelderMead:
                 break
 
             # Compute x for which the objective assumes the lowest value
-            low = np.argmin(func_simplex)
+            low = self.simplex[np.argmin(func_simplex)]
+
+            # Reflect
+            reflection = self.__reflect(centroid, high)
+
+            if self.objective(low) > self.objective(reflection):
+                # Reflection is the new lowest value
+                low = reflection
+
+                # Expand
+                expansion = self.__expand(centroid, low)
+
+                if self.objective(low) > self.objective(expansion):
+                    # Expansion is the new highest value
+                    high = expansion
+
+                    # Create new simplex
+                    self.simplex[high_index] = high
+
+                    continue
+
+                else:
+                    # Expansion failed. Reflection is the new highest value
+                    high = reflection
+
+                    # Create new simplex
+                    self.simplex[high_index] = high
+
+                    continue
+
 
         return centroid
 
