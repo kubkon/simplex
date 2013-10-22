@@ -2,10 +2,9 @@ import logging
 
 import numpy as np
 
-logging.basicConfig(level=logging.DEBUG)
 
 class NelderMead:
-    def __init__(self, objective, simplex, epsilon=1e-6):
+    def __init__(self, objective, simplex, epsilon=1e-6, callback=None):
         """
         Arguments:
         objective -- objective function to be minimised. It is
@@ -20,6 +19,7 @@ class NelderMead:
         self.beta = 0.5
         self.gamma = 2
         self.epsilon = epsilon
+        self.__callback = callback
 
     def solve(self):
         """
@@ -32,7 +32,8 @@ class NelderMead:
         func_simplex_without_1 = np.empty(n, dtype=np.float)
 
         while True:
-            logging.debug("Current simplex:\n%s", self.simplex)
+            # Call back
+            self.call_back()
 
             # Compute function values for the current simplex
             for i in np.arange(n+1):
@@ -61,7 +62,6 @@ class NelderMead:
             # Check for convergence to minimum
             centroids = np.ones(n+1, dtype=np.float) * self.objective(centroid)
             stopping_condition = np.sqrt(np.sum((func_simplex - centroids)**2) / (n+1))
-            logging.debug("Stopping condition: %f", stopping_condition)
             if stopping_condition < self.epsilon:
                 break
 
@@ -170,3 +170,8 @@ class NelderMead:
         value -- point to be contracted
         """
         return centroid + self.beta * (value - centroid)
+
+    def call_back(self):
+        if self.__callback:
+            args = [np.copy(self.simplex).tolist()]
+            self.__callback(args)
