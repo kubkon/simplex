@@ -1,4 +1,8 @@
 *
-!*.gitignore
+!*/
+!.gitignore
 !*.py
 !*.md
+!*.txt
+!*.in
+Simplex.egg-info/

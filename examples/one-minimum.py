@@ -1,4 +1,4 @@
-from simplex import NelderMead
+from simplex.algorithm import NelderMeadSimplex
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ def callback(args):
 simplex = np.array([[0,0], [0,1], [1,0]], dtype=np.float)
 
 # Initialise NelderMead simplex algorithm
-nm = NelderMead(objective, simplex, epsilon=1e-1, callback=callback)
+nm = NelderMeadSimplex(objective, simplex, epsilon=1e-1, callback=callback)
 
 # Minimise the objective function
 solution = nm.solve()
@@ -45,4 +45,4 @@ for simplex in simplices:
             plt.plot(*zip(simplex[i], simplex[j]), c='black')
 
 plt.grid()
-plt.savefig('simplex.pdf')
+plt.savefig('one-minimum.pdf')

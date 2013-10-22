@@ -1,9 +1,7 @@
-import logging
-
 import numpy as np
 
 
-class NelderMead:
+class NelderMeadSimplex:
     def __init__(self, objective, simplex, epsilon=1e-6, callback=None):
         """
         Arguments:
