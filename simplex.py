@@ -1,4 +1,8 @@
+import logging
+
 import numpy as np
+
+logging.basicConfig(level=logging.DEBUG)
 
 class NelderMead:
     def __init__(self, objective, simplex):
@@ -25,16 +29,18 @@ class NelderMead:
         func_simplex = np.empty(n+1, dtype=np.float)
         func_simplex_without_1 = np.empty(n, dtype=np.float)
 
-        while True:
-            print(self.simplex)
+        for i in range(14):
+            logging.debug("Current simplex:\n%s", self.simplex)
 
             # Compute function values for the current simplex
             for i in np.arange(n+1):
                 func_simplex[i] = self.objective(self.simplex[i])
+            logging.debug("Function values for the simplex:\n%s", func_simplex)
 
             # Compute x for which the objective assumes the highest value
             high_index = np.argmax(func_simplex)
             high = self.simplex[high_index]
+            logging.debug("Current maximum: %s", high)
 
             # Compute function values for the simplex without the highest
             # value
@@ -53,6 +59,7 @@ class NelderMead:
 
             # Check for convergence to minimum
             centroids = np.ones(n+1, dtype=np.float) * self.objective(centroid)
+            print(np.sqrt(1 / n+1 * np.sum((func_simplex - centroids)**2)))
             if np.sqrt(1 / n+1 * np.sum((func_simplex - centroids)**2)) < self.epsilon:
                 break
 
@@ -63,56 +70,41 @@ class NelderMead:
             reflection = self.__reflect(centroid, high)
 
             if self.objective(low) > self.objective(reflection):
-                # Reflection is the new lowest value
-                low = reflection
+                # Reflection is the new lowest value. Expand
+                expansion = self.__expand(centroid, reflection)
 
-                # Expand
-                expansion = self.__expand(centroid, low)
-
-                if self.objective(low) > self.objective(expansion):
-                    # Expansion is the new highest value
-                    high = expansion
-
-                    # Create new simplex
-                    self.simplex[high_index] = high
+                if self.objective(reflection) > self.objective(expansion):
+                    # Expansion is the new highest value. Create new simplex
+                    self.simplex[high_index] = expansion
 
                 else:
-                    # Expansion failed. Reflection is the new highest value
-                    high = reflection
-
+                    # Expansion failed. Reflection is the new highest value.
                     # Create new simplex
-                    self.simplex[high_index] = high
+                    self.simplex[high_index] = reflection
 
             elif np.amax(func_simplex_without_1, axis=0) >= self.objective(reflection):
-                # Reflection is the new highest value
-                high = reflection
-
-                # Create new simplex
-                self.simplex[high_index] = high
+                # Reflection is the new highest value. Create new simplex
+                self.simplex[high_index] = reflection
 
             else:
                 # Define augmented highest value
                 if self.objective(high) > self.objective(reflection):
-                    high_aug = reflection
-                else:
-                    high_aug = high
+                    high = reflection
                 
                 # Contract
-                contraction = self.__contract(centroid, high_aug)
+                contraction = self.__contract(centroid, high)
 
-                if self.objective(contraction) <= self.objective(high_aug):
-                    # Contraction is the new highest value
-                    high = contraction
-
+                if self.objective(contraction) <= self.objective(high):
+                    # Contraction is the new highest value.
                     # Create new simplex
-                    self.simplex[high_index] = high
+                    self.simplex[high_index] = contraction
 
                 else:
                     # Create new simplex
                     for i in np.arange(n+1):
                         self.simplex[i] = self.simplex[i] + 0.5 * (low - self.simplex[i])
 
-        return centroid
+        return self.simplex[np.argmin(func_simplex)]
 
     def __centroid(self, high):
         n = self.simplex.shape[0] - 1
