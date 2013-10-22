@@ -3,6 +3,12 @@ from simplex.algorithm import NelderMeadSimplex
 import numpy as np
 import matplotlib.pyplot as plt
 
+from matplotlib import rc
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+## for Palatino and other serif fonts use:
+#rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
+
 # Define objective function
 def objective(xs):
     x1, x2 = xs[0], xs[1]
@@ -14,7 +20,7 @@ def callback(args):
     simplices.append(args[0])
 
 # Initial simplex
-simplex = np.array([[-2,0], [-1,2], [-1.75,2]], dtype=np.float)
+# simplex = np.array([[-2,0], [-1,2], [-1.75,2]], dtype=np.float)
 simplex = np.array([[2,0], [1,2], [1.75,2]], dtype=np.float)
 
 # Initialise NelderMead simplex algorithm
@@ -47,5 +53,7 @@ for simplex in simplices:
 
             plt.plot(*zip(simplex[i], simplex[j]), c='black')
 
+plt.xlabel(r"$$x_1$$")
+plt.ylabel(r"$$x_2$$")
 plt.grid()
-plt.savefig('two-minima.pdf')
+plt.savefig('two-minima.png', bbox_inches=0, dpi=80)
