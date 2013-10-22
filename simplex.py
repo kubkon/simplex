@@ -14,7 +14,7 @@ class NelderMead:
         self.alpha = 1
         self.beta = 0.5
         self.gamma = 2
-        self.epsilon = 1e-3
+        self.epsilon = 1e-1
 
     def solve(self):
         """
@@ -23,8 +23,11 @@ class NelderMead:
         # Initialise numpy arrays
         n = self.simplex.shape[0] - 1
         func_simplex = np.empty(n+1, dtype=np.float)
+        func_simplex_without_1 = np.empty(n, dtype=np.float)
 
         while True:
+            print(self.simplex)
+
             # Compute function values for the current simplex
             for i in np.arange(n+1):
                 func_simplex[i] = self.objective(self.simplex[i])
@@ -32,6 +35,18 @@ class NelderMead:
             # Compute x for which the objective assumes the highest value
             high_index = np.argmax(func_simplex)
             high = self.simplex[high_index]
+
+            # Compute function values for the simplex without the highest
+            # value
+            j = 0
+            for i in np.arange(n):
+                value = self.simplex[i]
+
+                if (value == high).all():
+                    continue
+
+                func_simplex_without_1[j] = self.objective(value)
+                j += 1
 
             # Compute the centroid value
             centroid = self.__centroid(high)
@@ -61,8 +76,6 @@ class NelderMead:
                     # Create new simplex
                     self.simplex[high_index] = high
 
-                    continue
-
                 else:
                     # Expansion failed. Reflection is the new highest value
                     high = reflection
@@ -70,8 +83,34 @@ class NelderMead:
                     # Create new simplex
                     self.simplex[high_index] = high
 
-                    continue
+            elif np.amax(func_simplex_without_1, axis=0) >= self.objective(reflection):
+                # Reflection is the new highest value
+                high = reflection
 
+                # Create new simplex
+                self.simplex[high_index] = high
+
+            else:
+                # Define augmented highest value
+                if self.objective(high) > self.objective(reflection):
+                    high_aug = reflection
+                else:
+                    high_aug = high
+                
+                # Contract
+                contraction = self.__contract(centroid, high_aug)
+
+                if self.objective(contraction) <= self.objective(high_aug):
+                    # Contraction is the new highest value
+                    high = contraction
+
+                    # Create new simplex
+                    self.simplex[high_index] = high
+
+                else:
+                    # Create new simplex
+                    for i in np.arange(n+1):
+                        self.simplex[i] = self.simplex[i] + 0.5 * (low - self.simplex[i])
 
         return centroid
 
