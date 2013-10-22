@@ -18,7 +18,7 @@ class NelderMead:
         self.alpha = 1
         self.beta = 0.5
         self.gamma = 2
-        self.epsilon = 1e-1
+        self.epsilon = 1e-6
 
     def solve(self):
         """
@@ -29,23 +29,22 @@ class NelderMead:
         func_simplex = np.empty(n+1, dtype=np.float)
         func_simplex_without_1 = np.empty(n, dtype=np.float)
 
-        for i in range(14):
+        while True:
             logging.debug("Current simplex:\n%s", self.simplex)
 
             # Compute function values for the current simplex
             for i in np.arange(n+1):
                 func_simplex[i] = self.objective(self.simplex[i])
-            logging.debug("Function values for the simplex:\n%s", func_simplex)
 
             # Compute x for which the objective assumes the highest value
             high_index = np.argmax(func_simplex)
             high = self.simplex[high_index]
-            logging.debug("Current maximum: %s", high)
+            f_high = self.objective(high)
 
             # Compute function values for the simplex without the highest
             # value
             j = 0
-            for i in np.arange(n):
+            for i in np.arange(n+1):
                 value = self.simplex[i]
 
                 if (value == high).all():
@@ -59,21 +58,25 @@ class NelderMead:
 
             # Check for convergence to minimum
             centroids = np.ones(n+1, dtype=np.float) * self.objective(centroid)
-            print(np.sqrt(1 / n+1 * np.sum((func_simplex - centroids)**2)))
-            if np.sqrt(1 / n+1 * np.sum((func_simplex - centroids)**2)) < self.epsilon:
+            stopping_condition = np.sqrt(np.sum((func_simplex - centroids)**2) / (n+1))
+            logging.debug("Stopping condition: %f", stopping_condition)
+            if stopping_condition < self.epsilon:
                 break
 
             # Compute x for which the objective assumes the lowest value
             low = self.simplex[np.argmin(func_simplex)]
+            f_low = self.objective(low)
 
             # Reflect
             reflection = self.__reflect(centroid, high)
+            f_reflection = self.objective(reflection)
 
-            if self.objective(low) > self.objective(reflection):
+            if f_low > f_reflection:
                 # Reflection is the new lowest value. Expand
                 expansion = self.__expand(centroid, reflection)
+                f_expansion = self.objective(expansion)
 
-                if self.objective(reflection) > self.objective(expansion):
+                if f_reflection > f_expansion:
                     # Expansion is the new highest value. Create new simplex
                     self.simplex[high_index] = expansion
 
@@ -82,19 +85,21 @@ class NelderMead:
                     # Create new simplex
                     self.simplex[high_index] = reflection
 
-            elif np.amax(func_simplex_without_1, axis=0) >= self.objective(reflection):
+            elif np.amax(func_simplex_without_1, axis=0) >= f_reflection and f_reflection >= f_low:
                 # Reflection is the new highest value. Create new simplex
                 self.simplex[high_index] = reflection
 
             else:
                 # Define augmented highest value
-                if self.objective(high) > self.objective(reflection):
+                if f_high > f_reflection:
                     high = reflection
+                    f_high = self.objective(high)
                 
                 # Contract
                 contraction = self.__contract(centroid, high)
+                f_contraction = self.objective(contraction)
 
-                if self.objective(contraction) <= self.objective(high):
+                if f_contraction <= f_high:
                     # Contraction is the new highest value.
                     # Create new simplex
                     self.simplex[high_index] = contraction
