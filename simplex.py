@@ -5,24 +5,26 @@ import numpy as np
 logging.basicConfig(level=logging.DEBUG)
 
 class NelderMead:
-    def __init__(self, objective, simplex):
+    def __init__(self, objective, simplex, epsilon=1e-6):
         """
         Arguments:
         objective -- objective function to be minimised. It is
         assumed the function takes a numpy array (vector) as input.
         simplex -- initial simplex. It is assumed the simplex is
         a 2D numpy array.
+        epsilon -- (optional) 
         """
         self.objective = objective
         self.simplex = simplex
         self.alpha = 1
         self.beta = 0.5
         self.gamma = 2
-        self.epsilon = 1e-6
+        self.epsilon = epsilon
 
     def solve(self):
         """
-        Returns numpy array that minimises the objective function.
+        Returns the point (numpy array) that minimises
+        the objective function.
         """
         # Initialise numpy arrays
         n = self.simplex.shape[0] - 1
@@ -112,6 +114,13 @@ class NelderMead:
         return self.simplex[np.argmin(func_simplex)]
 
     def __centroid(self, high):
+        """
+        Returns the centroid of all points in the simplex
+        except the one that maximises the objective function.
+
+        Arguments:
+        high -- point that maximises the objective function
+        """
         n = self.simplex.shape[0] - 1
         m = self.simplex.shape[1]
         values = np.empty((n,m), dtype=np.float)
@@ -130,10 +139,34 @@ class NelderMead:
         return 1 / n * np.sum(values, axis=0)
 
     def __reflect(self, centroid, value):
+        """
+        Returns point that correspond to the reflection
+        step of the Nelder-Mead algorithm.
+
+        Arguments:
+        centroid -- the centroid
+        value -- point to be reflected
+        """
         return centroid + self.alpha * (centroid - value)
 
     def __expand(self, centroid, value):
+        """
+        Returns point that correspond to the expansion
+        step of the Nelder-Mead algorithm.
+
+        Arguments:
+        centroid -- the centroid
+        value -- point to be expanded
+        """
         return centroid + self.gamma * (value - centroid)
 
     def __contract(self, centroid, value):
+        """
+        Returns point that correspond to the contraction
+        step of the Nelder-Mead algorithm.
+
+        Arguments:
+        centroid -- the centroid
+        value -- point to be contracted
+        """
         return centroid + self.beta * (value - centroid)
