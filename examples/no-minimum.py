@@ -23,7 +23,7 @@ def callback(args):
 simplex = np.array([[0,0], [1,1], [0,1]], dtype=np.float)
 
 # Initialise NelderMead simplex algorithm
-nm = NelderMeadSimplex(objective, simplex, epsilon=1e-6, callback=callback)
+nm = NelderMeadSimplex(objective, simplex, epsilon=1e-6, max_iter=8, callback=callback)
 
 # Minimise the objective function
 solution = nm.solve()
@@ -31,8 +31,8 @@ solution = nm.solve()
 print("Minimum at {}".format(solution))
 
 # Tabulate objective function
-x = np.linspace(-3, 3, 1000)
-y = np.linspace(-3, 3, 1000)
+x = np.linspace(-10, 10, 1000)
+y = np.linspace(-10, 10, 1000)
 X, Y = np.meshgrid(x, y)
 Z = X*Y
 
