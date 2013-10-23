@@ -2,7 +2,7 @@ import numpy as np
 
 
 class NelderMeadSimplex:
-    def __init__(self, objective, simplex, epsilon=1e-6, callback=None):
+    def __init__(self, objective, simplex, epsilon=1e-6, max_iter=1000, callback=None):
         """
         Arguments:
         objective -- objective function to be minimised. It is
@@ -17,6 +17,7 @@ class NelderMeadSimplex:
         self.beta = 0.5
         self.gamma = 2
         self.epsilon = epsilon
+        self.max_iter = max_iter
         self.__callback = callback
 
     def solve(self):
@@ -24,12 +25,15 @@ class NelderMeadSimplex:
         Returns the point (numpy array) that minimises
         the objective function.
         """
+        # Initialise iteration counter
+        it = 0
+
         # Initialise numpy arrays
         n = self.simplex.shape[0] - 1
         func_simplex = np.empty(n+1, dtype=np.float)
         func_simplex_without_1 = np.empty(n, dtype=np.float)
 
-        while True:
+        while True and it < self.max_iter:
             # Call back
             self.call_back()
 
@@ -108,6 +112,8 @@ class NelderMeadSimplex:
                     # Create new simplex
                     for i in np.arange(n+1):
                         self.simplex[i] = self.simplex[i] + 0.5 * (low - self.simplex[i])
+
+            it += 1
 
         return self.simplex[np.argmin(func_simplex)]
 
