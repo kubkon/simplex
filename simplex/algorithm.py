@@ -9,7 +9,10 @@ class NelderMeadSimplex:
         assumed the function takes a numpy array (vector) as input.
         simplex -- initial simplex. It is assumed the simplex is
         a 2D numpy array.
-        epsilon -- (optional) 
+        epsilon -- (optional) convergence criterion
+        max_iter -- (optional) maximum number of iterations
+        callback -- (optional) callback function accepting array
+        arguments
         """
         self.objective = objective
         self.simplex = simplex
@@ -34,8 +37,10 @@ class NelderMeadSimplex:
         func_simplex_without_1 = np.empty(n, dtype=np.float)
 
         while True and it < self.max_iter:
-            # Call back
-            self.call_back()
+            # Call back if defined
+            if self.__callback:
+                args = [np.copy(self.simplex).tolist()]
+                self.__callback(args)
 
             # Compute function values for the current simplex
             for i in np.arange(n+1):
@@ -174,8 +179,3 @@ class NelderMeadSimplex:
         value -- point to be contracted
         """
         return centroid + self.beta * (value - centroid)
-
-    def call_back(self):
-        if self.__callback:
-            args = [np.copy(self.simplex).tolist()]
-            self.__callback(args)
